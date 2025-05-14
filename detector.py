@@ -1,31 +1,22 @@
 import os
-import gdown
+import requests
 import numpy as np
 from PIL import Image
 import tensorflow as tf
 
 MODEL_PATH = "saved_model.h5"
-GDRIVE_URL = "https://drive.google.com/uc?id=13wVvnqAoVssuKDjkIrWPScPhxPvjHuqp"
+MODEL_URL = "https://huggingface.co/eneswayn/nsfw-model/resolve/main/saved_model.h5"
 
-# 🔍 İndirilen dosya gerçekten inmiş mi kontrol et
+# Model dosyası yoksa indir
 if not os.path.exists(MODEL_PATH):
     print("✅ Model bulunamadı, indiriliyor...")
-    gdown.download(url=GDRIVE_URL, output=MODEL_PATH, quiet=False)
-else:
-    print("✅ Model zaten mevcut, yeniden indirmeye gerek yok.")
+    response = requests.get(MODEL_URL)
+    with open(MODEL_PATH, "wb") as f:
+        f.write(response.content)
+    print("✅ Model indirildi.")
 
-# 🧪 Dosya var mı ve boyutu ne kadar?
-print("📦 Dosya mevcut mu:", os.path.exists(MODEL_PATH))
-if os.path.exists(MODEL_PATH):
-    print("📏 Dosya boyutu (byte):", os.path.getsize(MODEL_PATH))
-
-# ✅ Model yükleniyor
-try:
-    model = tf.keras.models.load_model(MODEL_PATH)
-    print("🚀 Model başarıyla yüklendi.")
-except Exception as e:
-    print("❌ Model yüklenemedi:", str(e))
-    raise
+# Modeli yükle
+model = tf.keras.models.load_model(MODEL_PATH)
 
 CLASS_NAMES = ['drawings', 'hentai', 'neutral', 'porn', 'sexy']
 

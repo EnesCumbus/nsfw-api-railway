@@ -5,9 +5,10 @@ import os
 
 app = FastAPI()
 
-@app.post("/check")
+@app.post("/check/")
 async def check_image(file: UploadFile = File(...)):
     temp_path = f"temp_{file.filename}"
+    
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
