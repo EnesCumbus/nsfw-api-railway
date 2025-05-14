@@ -5,13 +5,27 @@ from PIL import Image
 import tensorflow as tf
 
 MODEL_PATH = "saved_model.h5"
-GDRIVE_ID = "senin_model_id"
+GDRIVE_URL = "https://drive.google.com/uc?id=13wVvnqAoVssuKDjkIrWPScPhxPvjHuqp"
 
+# 🔍 İndirilen dosya gerçekten inmiş mi kontrol et
 if not os.path.exists(MODEL_PATH):
-    print("Model indiriliyor...")
-    gdown.download(id="13wVvnqAoVssuKDjkIrWPScPhxPvjHuqp", output=MODEL_PATH, quiet=False)
+    print("✅ Model bulunamadı, indiriliyor...")
+    gdown.download(url=GDRIVE_URL, output=MODEL_PATH, quiet=False)
+else:
+    print("✅ Model zaten mevcut, yeniden indirmeye gerek yok.")
 
-model = tf.keras.models.load_model(MODEL_PATH)
+# 🧪 Dosya var mı ve boyutu ne kadar?
+print("📦 Dosya mevcut mu:", os.path.exists(MODEL_PATH))
+if os.path.exists(MODEL_PATH):
+    print("📏 Dosya boyutu (byte):", os.path.getsize(MODEL_PATH))
+
+# ✅ Model yükleniyor
+try:
+    model = tf.keras.models.load_model(MODEL_PATH)
+    print("🚀 Model başarıyla yüklendi.")
+except Exception as e:
+    print("❌ Model yüklenemedi:", str(e))
+    raise
 
 CLASS_NAMES = ['drawings', 'hentai', 'neutral', 'porn', 'sexy']
 
