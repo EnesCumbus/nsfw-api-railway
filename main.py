@@ -18,9 +18,4 @@ async def check_image(file: UploadFile = File(...)):
         return {"error": str(e)}
 
     os.remove(temp_path)
-    return {
-        "safe": result["safe"],
-        "nsfw_score": result["nsfw_score"],
-        "dominant_class": result["dominant_class"],
-        "scores": result["scores"]
-    }
+    return result

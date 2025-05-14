@@ -1,7 +1,9 @@
 import os
 import shutil
 import requests
-from nsfw_detector import predict
+import numpy as np
+from PIL import Image
+import tensorflow as tf
 
 MODEL_URL = "https://drive.google.com/file/d/13wVvnqAoVssuKDjkIrWPScPhxPvjHuqp"
 MODEL_PATH = "saved_model.h5"
@@ -13,16 +15,31 @@ if not os.path.exists(MODEL_PATH):
         shutil.copyfileobj(response.raw, f)
     del response
 
-model = predict.load_model(MODEL_PATH)
+model = tf.keras.models.load_model(MODEL_PATH)
+
+# Bu fonksiyonu modeline göre değiştir
+CLASS_NAMES = ['drawings', 'hentai', 'neutral', 'porn', 'sexy']
+
+
+def preprocess_image(image_path):
+    img = Image.open(image_path).convert('RGB')
+    img = img.resize((224, 224))
+    img_array = np.array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    return img_array
+
 
 def check_nsfw(image_path):
-    result = predict.classify(model, image_path)
-    scores = result[image_path]
-    nsfw_score = scores.get("porn", 0.0) + scores.get("sexy", 0.0)
-    dominant_class = max(scores, key=scores.get)
+    image = preprocess_image(image_path)
+    preds = model.predict(image)[0]
+
+    result = dict(zip(CLASS_NAMES, preds.tolist()))
+    dominant_class = CLASS_NAMES[np.argmax(preds)]
+    nsfw_score = result.get("porn", 0.0) + result.get("sexy", 0.0)
+
     return {
+        "safe": nsfw_score <= 0.6,
         "nsfw_score": nsfw_score,
         "dominant_class": dominant_class,
-        "scores": scores,
-        "safe": nsfw_score <= 0.6
+        "scores": result
     }
